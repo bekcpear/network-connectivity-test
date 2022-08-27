@@ -45,9 +45,12 @@ _check_ipv6() {
 #
 # $1: file
 _insert_time() {
+  local _running_file=${1%/*}/RUNNING
   trap '
     echo "===== $(_date)" >>"${1}"
+    rm ${_running_file}
   ' SIGINT
+  touch ${_running_file}
   while :; do
     echo "===== $(_date)" >>"${1}"
     sleep 600
@@ -57,14 +60,14 @@ _insert_time() {
 # main process
 declare -a _ping_subprocesses _insert_subprocesses
 for _ip; do
-  _c_date=$(_date '+%Y-%m-%d+T%H_%M_%S%z')
+  _c_date=$(_date '+D%Y-%m-%d_T%H-%M-%S_%z')
   _opts=''
 
   if _check_ipv4 ${_ip}; then
-    _work_dir="ping_v4_${_ip//./-}_DATE-${_c_date}"
+    _work_dir="ping_v4_${_ip//./-}_${_c_date}"
     _opts="-4"
   elif _check_ipv6 ${_ip}; then
-    _work_dir="ping_v6_${_ip//:/-}_DATE-${_c_date}"
+    _work_dir="ping_v6_${_ip//:/-}_${_c_date}"
     _opts="-6"
   else
     echo "Invaild IP address!" >&2

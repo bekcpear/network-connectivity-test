@@ -23,6 +23,15 @@ else
   _work_dir="${_home_dir}/${1##*/}"
 fi
 
+_ip=''
+while IFS='_' read _ _type __ip _; do
+  if [[ ${_type} == "v4" ]]; then
+    _ip=${__ip//-/.}
+  elif [[ ${_type} == "v6" ]]; then
+    _ip=${__ip//-/:}
+  fi
+done <<<"${_work_dir#*/}"
+
 _ping_file="${_work_dir}/ping.log"
 
 if [[ ! -f ${_ping_file} ]]; then
@@ -31,9 +40,8 @@ if [[ ! -f ${_ping_file} ]]; then
 fi
 
 cd "${_work_dir}"
-pwd
 
-_tmp_dir=$(ls -1d ${_work_dir}/tmp.* | head -1)
+_tmp_dir=$(ls -1d ${_work_dir}/tmp.* 2>/dev/null | head -1)
 if [[ ! -d ${_tmp_dir} ]]; then
   _tmp_dir=$(mktemp -dp ${_work_dir})
 fi
@@ -44,7 +52,7 @@ declare -i _cnr=1
 _total=$(wc -l ${_ping_file} | cut -d' ' -f1)
 while (( ${_cnr} < ${_total} )); do
   _sep_tmpfile="${_tmp_dir}/${_i}"
-  echo "start ${_cnr}/${_total} > ${_i} ..."
+  echo -ne "start ${_cnr}/${_total} > ${_i} ...\033[G\033[J"
   export _cnr
   awk '
     NR >= ENVIRON["_cnr"] &&
@@ -75,14 +83,15 @@ _get_date() {
 }
 
 pushd ${_tmp_dir} >/dev/null
-echo -e "START\t\t\t\t-\tEND\t\t\t\trecv/trans\tloss%" >${_report}
-echo -n $(_get_date 0)$'\t''-'$'\t' >>${_report}
+echo "IP: ${_ip}" >${_report}
+echo -e "start datetime                 -   end datetime                   recv/trans   loss%" >>${_report}
+echo -n $(_get_date 0)'   -   ' >>${_report}
 for (( _ii = 1 ; _ii < _i; ++_ii )); do
   _d=$(_get_date ${_ii})
   if [[ -z ${_d} ]]; then
-    _d=" -- "
+    _d="   --                       "
   fi
-  echo -n ${_d}$'\t' >>${_report}
+  echo -n "${_d}   " >>${_report}
 
   _seq0=$(head -1 ${_ii} | cut -d' ' -f5)
   _seq0=${_seq0#icmp_seq=}
@@ -96,7 +105,11 @@ for (( _ii = 1 ; _ii < _i; ++_ii )); do
 
   _aseq=$(awk '/^.*bytes\sfrom.*ttl=.*$/' ${_ii} | wc -l | cut -d' ' -f1)
 
-  echo -n ${_aseq}/${_seq}$'\t\t' >>${_report}
+  _placeholder=''
+  for (( _j = $(( ${#_aseq} + 1 + ${#_seq} )); _j < 7; ++_j )); do
+    _placeholder+=' '
+  done
+  echo -n ${_aseq}/${_seq}"${_placeholder}      " >>${_report}
 
   _loss_rate=$(echo "scale=0; (${_seq} - ${_aseq})*10000/${_seq}" | bc)
   if (( ${_loss_rate} < 10 )); then
@@ -108,7 +121,7 @@ for (( _ii = 1 ; _ii < _i; ++_ii )); do
   fi
   printf "\e[%sm%4.2f%%\e[0m\n" ${_color} $(echo "scale=2; ${_loss_rate}/100" | bc ) >>${_report}
 
-  echo -n ${_d}$'\t''-'$'\t' >>${_report}
+  echo -n ${_d}'   -   ' >>${_report}
 done
 
 sed -i '$d' ${_report}
