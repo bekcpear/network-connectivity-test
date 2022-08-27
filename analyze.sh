@@ -49,6 +49,20 @@ fi
 declare -i _i=0
 declare -i _cnr=1
 
+_tmp_i=$(find ${_tmp_dir} -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | sort -n | tail -1)
+if [[ -n ${_tmp_i} && ${_tmp_i} > ${_i} ]]; then
+  if tail -2 ${_tmp_dir}/${_tmp_i} | grep '^=====\s' &>/dev/null; then
+    _i=$(( ${_tmp_i} + 1 ))
+    _cnr=$(tail -1 ${_tmp_dir}/${_tmp_i})
+    _cnr+=1
+  else
+    _i=${_tmp_i}
+    _cnr=$(tail -1 ${_tmp_dir}/$(( ${_i} - 1 )))
+    _cnr+=1
+  fi
+fi
+declare -i _i_p=${_i}
+
 _total=$(wc -l ${_ping_file} | cut -d' ' -f1)
 while (( ${_cnr} < ${_total} )); do
   _sep_tmpfile="${_tmp_dir}/${_i}"
@@ -83,10 +97,16 @@ _get_date() {
 }
 
 pushd ${_tmp_dir} >/dev/null
-echo "IP: ${_ip}" >${_report}
-echo -e "start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
-echo -n $(_get_date 0)'   -   ' >>${_report}
-for (( _ii = 1 ; _ii < _i; ++_ii )); do
+declare -i _ii_p=1
+if [[ ! -f ${_report} ]]; then
+  echo "IP: ${_ip}" >${_report}
+  echo -e "start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
+  echo -n $(_get_date 0)'   -   ' >>${_report}
+else
+  sed -zEi '$,/--/s@\s\s\s--\s+[^A-Z:]+\n@@' ${_report}
+  declare -i _ii_p=${_i_p}
+fi
+for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
   _d=$(_get_date ${_ii})
   if [[ -z ${_d} ]]; then
     _d="   --                       "
