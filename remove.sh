@@ -23,8 +23,16 @@ for _a; do
   else
     _work_dir="${_home_dir}/${_a##*/}"
   fi
+  if ls ${_work_dir}/RUNNING &>/dev/null; then
+    echo "'${_a}' is running, skip!"
+    continue
+  fi
   _rm_work_dirs+=("rm -rf ${_work_dir}"$'\n')
 done
+
+if [[ ${#_rm_work_dirs[@]} -lt 1 ]]; then
+  exit
+fi
 
 set -- "${_rm_work_dirs[@]}"
 echo " ""${@}"

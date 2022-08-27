@@ -48,7 +48,7 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
     _state='\033[32m\033[1mrunning\033[0m '
   else
     _state='finished'
-    _edt=$(grep '^=====\s' <<<"${_ping_file_tail}")
+    _edt=$(grep '^=====\s' <<<"${_ping_file_tail}" | tail -1)
     _ed=$(date -d "${_edt#===== }" '+%Y-%m-%d')
     _et=$(date -d "${_edt#===== }" '+%H:%M:%S')
     _etz=$(date -d "${_edt#===== }" '+%z')
