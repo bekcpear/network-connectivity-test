@@ -17,7 +17,7 @@ Usage: $0 <ID> | <PATH>
 fi
 
 
-if [[ ${1} =~ ^[0-9a-zA-Z]{5}(\.id)?$ ]]; then
+if [[ ${1} =~ ^[_0-9a-zA-Z]{5}(\.id)?$ ]]; then
   _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${1%.id}'.id' -type f -printf '%h\n')"
 else
   _work_dir="${_home_dir}/${1##*/}"

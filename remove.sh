@@ -18,7 +18,7 @@ fi
 
 declare -a _rm_work_dirs
 for _a; do
-  if [[ ${_a} =~ ^[0-9a-zA-Z]{5}(\.id)?$ ]]; then
+  if [[ ${_a} =~ ^[_0-9a-zA-Z]{5}(\.id)?$ ]]; then
     _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${_a%.id}'.id' -type f -printf '%h\n')"
   else
     _work_dir="${_home_dir}/${_a##*/}"
