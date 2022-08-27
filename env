@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# @author cwittlut <i@bitbili.net>
+#
+
+_home_dir="${HOME}/.local/share/network-connectivity-test"
+
+_date() {
+  export LC_TIME="C.UTF-8"
+  export TZ="Asia/Shanghai"
+  date "${@}"
+}
+
+
