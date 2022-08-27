@@ -16,7 +16,7 @@ Usage: $0
   exit
 fi
 
-echo -e " ID      STATE     TYPE   VER   DATE          TIME      TZ       IP
+echo -e " ID      STATE      TYPE   VER   DATE          TIME      TZ       IP
 ---------------------------------------------------------------------------------------"
 while IFS='_' read _type _ver _ip _d _t _tz; do
   _name="${_type}_${_ver}_${_ip}_${_d}_${_t}_${_tz}"
