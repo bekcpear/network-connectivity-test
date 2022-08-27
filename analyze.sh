@@ -84,7 +84,7 @@ _get_date() {
 
 pushd ${_tmp_dir} >/dev/null
 echo "IP: ${_ip}" >${_report}
-echo -e "start datetime                 -   end datetime                   recv/trans    loss%    avg.time" >>${_report}
+echo -e "start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
 echo -n $(_get_date 0)'   -   ' >>${_report}
 for (( _ii = 1 ; _ii < _i; ++_ii )); do
   _d=$(_get_date ${_ii})
