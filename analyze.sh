@@ -84,7 +84,7 @@ _get_date() {
 
 pushd ${_tmp_dir} >/dev/null
 echo "IP: ${_ip}" >${_report}
-echo -e "start datetime                 -   end datetime                   recv/trans   loss%" >>${_report}
+echo -e "start datetime                 -   end datetime                   recv/trans   loss%   avg.time" >>${_report}
 echo -n $(_get_date 0)'   -   ' >>${_report}
 for (( _ii = 1 ; _ii < _i; ++_ii )); do
   _d=$(_get_date ${_ii})
@@ -111,6 +111,7 @@ for (( _ii = 1 ; _ii < _i; ++_ii )); do
   done
   echo -n ${_aseq}/${_seq}"${_placeholder}      " >>${_report}
 
+  # loss rate
   _loss_rate=$(echo "scale=0; (${_seq} - ${_aseq})*10000/${_seq}" | bc)
   if (( ${_loss_rate} < 10 )); then
     _color="32" #green
@@ -119,7 +120,23 @@ for (( _ii = 1 ; _ii < _i; ++_ii )); do
   else
     _color="31" #red
   fi
-  printf "\e[%sm%4.2f%%\e[0m\n" ${_color} $(echo "scale=2; ${_loss_rate}/100" | bc ) >>${_report}
+  printf "\e[%sm%4.2f%%\e[0m" ${_color} $(echo "scale=2; ${_loss_rate}/100" | bc ) >>${_report}
+
+  # avg. time
+  echo -n "   " >>${_report}
+  printf "%d ms\n" $(echo $(awk -F'[= ]' '
+      BEGIN {
+        n=0
+        t=0
+      }
+      /time=/ {
+        n+=1
+        t+=$10
+      }
+      END {
+        printf "scale=0; "t" / "n
+      }
+    ' ${_ii}) | bc ) >>${_report}
 
   echo -n ${_d}'   -   ' >>${_report}
 done
