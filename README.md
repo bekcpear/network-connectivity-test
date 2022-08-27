@@ -15,6 +15,6 @@ It is suitable for long-term uninterrupted testing to determine which time perio
 
 #### screenshots
 
-![collect-date.sh](./assets/c-d.png)
+![collect-date.sh](./.assets/c-d.png)
 
-![list.sh;analyze.sh](./assets/l-a.png)
+![list.sh;analyze.sh](./.assets/l-a.png)
