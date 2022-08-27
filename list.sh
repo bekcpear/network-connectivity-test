@@ -40,9 +40,7 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   _seq_sum=${_seq_sum#*icmp_seq=}
   _seq_sum=${_seq_sum%% *}
   _seq_sum_count=${#_seq_sum}
-  for (( _i = ${_seq_sum_count}; _i < 22; ++_i )); do
-    _seq_sum+=' '
-  done
+  _placeholder='                      '
 
   if ls ${_home_dir}/${_name}/RUNNING &>/dev/null; then
     _state='\033[32m\033[1mrunning\033[0m '
@@ -56,9 +54,9 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
 
   echo -e " ${_id}   ${_state}   ${_type}   ${_ver}    S:${_d}  ${_t}  ${_tz}    ${_ip}"
   if [[ ${_state} == "finished" ]]; then
-    echo "         ${_seq_sum}  E:${_ed}  ${_et}  ${_etz}"
+    echo "         ${_seq_sum}${_placeholder:${#_seq_sum}}  E:${_ed}  ${_et}  ${_etz}"
   else
-    echo "         ${_seq_sum}"
+    echo "         ${_seq_sum}${_placeholder:${#_seq_sum}}"
   fi
   echo "---------------------------------------------------------------------------------------"
 done <<<"$(ls -1 ${_home_dir})"
