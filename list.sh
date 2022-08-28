@@ -39,7 +39,35 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   _seq_sum=$(tac <<<"${_ping_file_tail}" | grep 'icmp_seq=' | head -1)
   _seq_sum=${_seq_sum#*icmp_seq=}
   _seq_sum=${_seq_sum%% *}
-  _seq_sum_count=${#_seq_sum}
+  # get the number of times the sequence has been cycled
+  if [[ ${_seq_sum} -gt 60000 ]]; then
+    set -- head -n -50000 ${_ping_file}
+  else
+    set -- cat ${_ping_file}
+  fi
+  _test_seqs=($("${@}" | grep -E 'icmp_seq=655[0-9][0-9]' 2>/dev/null | sort))
+  _seq_loop=0
+  declare -i _seq_loop_last=0
+  _test_seq_last=''
+  for _test_seq in ${_test_seqs[@]}; do
+    if [[ ${_test_seq} != ${_test_seq_last} ]]; then
+      _test_seq_last=${_test_seq}
+      if [[ ${_seq_loop_last} -gt ${_seq_loop} ]]; then
+        _seq_loop=${_seq_loop_last}
+      fi
+      _seq_loop_last=1
+    else
+      _seq_loop_last+=1
+    fi
+  done
+  if [[ ${_seq_loop_last} -gt ${_seq_loop} ]]; then
+    _seq_loop=${_seq_loop_last}
+  fi
+  if [[ ${_seq_loop} -gt 0 ]]; then
+    _seq_sum="[+${_seq_loop}] ${_seq_sum}"
+  else
+    _seq_sum="${_seq_sum}"
+  fi
   _placeholder='                      '
 
   if ls ${_home_dir}/${_name}/RUNNING &>/dev/null; then
