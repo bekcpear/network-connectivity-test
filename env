@@ -3,7 +3,8 @@
 # @author cwittlut <i@bitbili.net>
 #
 
-_home_dir="${HOME}/.local/share/network-connectivity-test"
+_home_dir=${_home_dir:-"${HOME}/.local/share/network-connectivity-test"}
+_home_dir=$(realpath ${_home_dir})
 
 _date() {
   export LC_TIME="C.UTF-8"
