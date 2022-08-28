@@ -102,10 +102,10 @@ _get_date() {
 pushd ${_tmp_dir} >/dev/null
 eval "$(cat __pos 2>/dev/null)"
 declare -i _ii_p=1
-if [[ ! -f ${_report} ]]; then
+if [[ ! -f ${_report} || -z ${_i_p} ]]; then
   echo "IP: ${_ip}" >${_report}
-  echo -e "start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
-  echo -n $(_get_date 0)'   -   ' >>${_report}
+  echo -e "idx.   start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
+  echo -n '0      '$(_get_date 0)'   -   ' >>${_report}
 else
   sed -zEi '$,/--/s@\s\s\s--\s+[^A-Z:]+\n@@' ${_report}
   declare -i _ii_p=${_i_p:-1}
@@ -140,7 +140,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
       _seq0=${_seq0#icmp_seq=}
       # check discontinuous seq
       if [[ ${_seq0} -gt ${_seq1_last} && ${_seq0} != $(( ${_seq1_last} + 1 )) ]]; then
-        if [[ ${_seq0} -lt 500 ]]; then
+        if [[ ${_seq0} -lt 500 && ${_ii} -le 1 ]]; then
           _seq0=1
         else
           if [[ ${_seq_last} -lt 598 ]]; then
@@ -203,7 +203,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
 
   # avg. time
   echo -n "   " >>${_report}
-  printf "%d ms ${_ii}\n" $(echo $(awk -F'[= ]' '
+  printf "%d ms\n" $(echo $(awk -F'[= ]' '
       BEGIN {
         n=0
         t=0
@@ -218,7 +218,8 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
     ' ${_ii}) | bc ) >>${_report}
   echo "_i_p=${_ii}" >__pos
 
-  echo -n ${_d}'   -   ' >>${_report}
+  _placeholder='    '
+  echo -n "${_ii}${_placeholder:${#_ii}}   "${_d}'   -   ' >>${_report}
 done
 echo -ne "\033[G\033[J" >&2
 
