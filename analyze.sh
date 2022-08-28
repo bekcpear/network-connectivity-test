@@ -107,7 +107,8 @@ if [[ ! -f ${_report} || -z ${_i_p} ]]; then
   echo -e "idx.   start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
   echo -n '0      '$(_get_date 0)'   -   ' >>${_report}
 else
-  sed -zEi '$,/--/s@\s\s\s--\s+[^A-Z:]+\n@@' ${_report}
+  sed -Ei '$s@-\s\s\s.*@-   -----@' ${_report}
+  sed -zEi '$s@-----\n@@' ${_report}
   declare -i _ii_p=${_i_p:-1}
 fi
 declare -a _seq0_fixed _seq1_fixed
