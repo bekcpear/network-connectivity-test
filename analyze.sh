@@ -66,7 +66,7 @@ declare -i _i_p=${_i}
 _total=$(wc -l ${_ping_file} | cut -d' ' -f1)
 while (( ${_cnr} < ${_total} )); do
   _sep_tmpfile="${_tmp_dir}/${_i}"
-  echo -ne "start ${_cnr}/${_total} > ${_i} ...\033[G\033[J"
+  echo -ne "\033[G\033[Jfilter ${_cnr}/${_total} > ${_i} ..." >&2
   export _cnr
   awk '
     NR >= ENVIRON["_cnr"] &&
@@ -88,6 +88,7 @@ while (( ${_cnr} < ${_total} )); do
   _cnr+=1
   _i+=1
 done
+echo -ne "\033[G\033[J" >&2
 
 _report="$(pwd)/report.txt"
 
@@ -107,6 +108,7 @@ else
   declare -i _ii_p=${_i_p}
 fi
 for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
+  echo -ne "\033[G\033[Jparsing ${_ii} ..." >&2
   _d=$(_get_date ${_ii})
   if [[ -z ${_d} ]]; then
     _d="   --                       "
@@ -158,6 +160,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
 
   echo -n ${_d}'   -   ' >>${_report}
 done
+echo -ne "\033[G\033[J" >&2
 
 sed -i '$d' ${_report}
 echo "report:" ${_report}
