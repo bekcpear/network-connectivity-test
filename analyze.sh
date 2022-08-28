@@ -61,7 +61,6 @@ if [[ -n ${_tmp_i} && ${_tmp_i} > ${_i} ]]; then
     _cnr+=1
   fi
 fi
-declare -i _i_p=${_i}
 
 _total=$(wc -l ${_ping_file} | cut -d' ' -f1)
 while (( ${_cnr} < ${_total} )); do
@@ -81,6 +80,9 @@ while (( ${_cnr} < ${_total} )); do
     }
 
     END {
+      print "_seq0_fixed=";
+      print "_seq1_fixed=";
+      print "_seq_fixed=";
       print NR;
     }
   ' ${_ping_file} >${_sep_tmpfile}
@@ -98,6 +100,7 @@ _get_date() {
 }
 
 pushd ${_tmp_dir} >/dev/null
+eval "$(cat __pos 2>/dev/null)"
 declare -i _ii_p=1
 if [[ ! -f ${_report} ]]; then
   echo "IP: ${_ip}" >${_report}
@@ -105,8 +108,9 @@ if [[ ! -f ${_report} ]]; then
   echo -n $(_get_date 0)'   -   ' >>${_report}
 else
   sed -zEi '$,/--/s@\s\s\s--\s+[^A-Z:]+\n@@' ${_report}
-  declare -i _ii_p=${_i_p}
+  declare -i _ii_p=${_i_p:-1}
 fi
+declare -a _seq0_fixed _seq1_fixed
 for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
   echo -ne "\033[G\033[Jparsing ${_ii} ..." >&2
   _d=$(_get_date ${_ii})
@@ -115,19 +119,69 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
   fi
   echo -n "${_d}   " >>${_report}
 
-  _seq0=$(head -1 ${_ii} | cut -d' ' -f5)
-  _seq0=${_seq0#icmp_seq=}
-  while read _ _ _ _ _seq1 _; do
-    if [[ ${_seq1} =~ ^icmp_seq ]]; then
-      _seq1=${_seq1#icmp_seq=}
-      break
-    fi
-  done <<<"$(tail ${_ii} | tac)"
+  unset _seq0_fixed _seq1_fixed _seq_fixed
+  while read _line; do
+    eval "declare ${_line}"
+  done <<<"$(grep '^_seq' -- $((${_ii} - 1)))"
+  _seq0_last=${_seq0_fixed}
+  _seq1_last=${_seq1_fixed}
+  _seq_last=${_seq_fixed}
+  while read _line; do
+    eval "declare ${_line}"
+  done <<<"$(grep '^_seq' -- ${_ii})"
 
-  if [[ ${_seq1} -gt ${_seq0} ]]; then
-    _seq=$(( ${_seq1} - ${_seq0} + 1 ))
+  if [[ -n ${_seq_fixed} ]]; then
+    _seq=${_seq_fixed}
   else
-    _seq=$(( 65535 - ${_seq0} + ${_seq1} + 2 ))
+    if [[ -n ${_seq0_fixed} ]]; then
+      _seq0=${_seq0_fixed}
+    else
+      _seq0=$(head -1 ${_ii} | cut -d' ' -f5)
+      _seq0=${_seq0#icmp_seq=}
+      # check discontinuous seq
+      if [[ ${_seq0} -gt ${_seq1_last} && ${_seq0} != $(( ${_seq1_last} + 1 )) ]]; then
+        if [[ ${_seq0} -lt 500 ]]; then
+          _seq0=1
+        else
+          if [[ ${_seq_last} -lt 598 ]]; then
+            # re-parse the last sequence set
+            sed -Ei '$d;' ${_report}
+            sed -Ei '$s@-\s\s\s.*@-   -----@' ${_report}
+            sed -zEi '$s@-----\n@@' ${_report}
+            eval "sed -Ei '/^_seq1_fixed/s/_seq1_fixed=.*/_seq1_fixed=$(( ${_seq0} - 1 ))/' $((${_ii} - 1))"
+            _ii=$(( ${_ii} - 2 ))
+            continue
+          else
+            _seq0=$(( ${_seq1_last} + 1 ))
+          fi
+        fi
+      fi
+    fi
+
+    if [[ -n ${_seq1_fixed} ]]; then
+      _seq1=${_seq1_fixed}
+    else
+      while read _ _ _ _ _seq1 _; do
+        if [[ ${_seq1} =~ ^icmp_seq ]]; then
+          _seq1=${_seq1#icmp_seq=}
+          break
+        fi
+      done <<<"$(tail ${_ii} | tac)"
+    fi
+
+    if [[ ${_seq1} -gt ${_seq0} ]]; then
+      _seq=$(( ${_seq1} - ${_seq0} + 1 ))
+    else
+      _seq=$(( 65535 - ${_seq0} + ${_seq1} + 2 ))
+    fi
+    if [[ ${_seq} -gt 600 ]]; then
+      _seq1=$(( ${_seq1} - ${_seq} + 600 ))
+      _seq=600
+    fi
+    eval "sed -Ei \
+      -e '/^_seq0_fixed/s/_seq0_fixed=.*/_seq0_fixed=${_seq0}/' \
+      -e '/^_seq1_fixed/s/_seq1_fixed=.*/_seq1_fixed=${_seq1}/' \
+      -e '/^_seq_fixed/s/_seq_fixed=.*/_seq_fixed=${_seq}/' ${_ii}"
   fi
 
   _aseq=$(awk '/^.*bytes\sfrom.*ttl=.*$/' ${_ii} | wc -l | cut -d' ' -f1)
@@ -149,7 +203,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
 
   # avg. time
   echo -n "   " >>${_report}
-  printf "%d ms\n" $(echo $(awk -F'[= ]' '
+  printf "%d ms ${_ii}\n" $(echo $(awk -F'[= ]' '
       BEGIN {
         n=0
         t=0
@@ -162,6 +216,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
         printf "scale=0; "t" / "n
       }
     ' ${_ii}) | bc ) >>${_report}
+  echo "_i_p=${_ii}" >__pos
 
   echo -n ${_d}'   -   ' >>${_report}
 done
