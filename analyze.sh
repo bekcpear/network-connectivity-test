@@ -123,7 +123,12 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
       break
     fi
   done <<<"$(tail ${_ii} | tac)"
-  _seq=$(( ${_seq1} - ${_seq0} + 1 ))
+
+  if [[ ${_seq1} -gt ${_seq0} ]]; then
+    _seq=$(( ${_seq1} - ${_seq0} + 1 ))
+  else
+    _seq=$(( 65535 - ${_seq0} + ${_seq1} + 2 ))
+  fi
 
   _aseq=$(awk '/^.*bytes\sfrom.*ttl=.*$/' ${_ii} | wc -l | cut -d' ' -f1)
 
