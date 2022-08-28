@@ -23,8 +23,8 @@ for _a; do
   else
     _work_dir="${_home_dir}/${_a##*/}"
   fi
-  _cache_dir=$(ls -1d ${_work_dir}/tmp.*)
-  _rm_cache_dirs+=("rm -rf ${_cache_dir}"$'\n')
+  _cache_dir=$(ls -1d ${_work_dir}/tmp.* 2>/dev/null) && \
+    _rm_cache_dirs+=("rm -rf ${_cache_dir}"$'\n') || true
 done
 
 if [[ ${#_rm_cache_dirs[@]} -lt 1 ]]; then
