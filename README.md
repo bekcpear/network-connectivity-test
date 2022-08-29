@@ -61,6 +61,9 @@ $ ./nct a <ID>
 
 # stop a running job
 $ ./nct s <ID>
+
+# automatically update analysis report by watch
+$ watch --color -n2 './nct a <ID> | tail -40'
 ```
 
 #### screenshots
