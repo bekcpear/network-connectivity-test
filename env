@@ -5,6 +5,7 @@
 
 _home_dir=${NCT_DIR:-"${HOME}/.local/share/network-connectivity-test"}
 _home_dir=$(realpath ${_home_dir})
+_debug_log="/dev/null"
 
 _date() {
   export LC_TIME="C.UTF-8"
