@@ -10,7 +10,7 @@ Depends on
 * other basic Linux commands
 
 ```bash
-$ ./cnt help
+$ ./nct help
 Usage: nct <cmd> [<option>...]
 
       a, analyze  <ID>                  analyze the collect data
