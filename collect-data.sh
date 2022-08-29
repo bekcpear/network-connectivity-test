@@ -223,7 +223,6 @@ fi
 ' ERR EXIT
 
 # main process
-_sock="/tmp/network-connectivity-test.sock"
 if [[ -e ${_sock} ]]; then
   _action='append'
   if [[ ${1} == '-s' ]]; then
@@ -234,7 +233,6 @@ if [[ -e ${_sock} ]]; then
     _show_info $(_send_item ${_item} ${_action})
   done
 else
-  _NC_FIFO="/tmp/network-connectivity-test.fifo"
   mkfifo ${_NC_FIFO}
   exec {_FD_ITEM}> >(_listen)
   _listen_pid=$!
