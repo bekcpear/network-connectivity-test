@@ -68,33 +68,6 @@ if [[ -e ${_sock} ]]; then
   exit
 fi
 
-
-_check_ipv4() {
-  local IFS='.'
-  local _c=(${1})
-  local _ret=1
-  for __c in ${_c[@]}; do
-    if [[ ${__c} =~ ^[0-9]{1,3}$ ]]; then
-      if [[ ${__c} -lt 256 ]]; then
-        _ret=0
-      fi
-    fi
-  done
-  return ${_ret}
-}
-
-_check_ipv6() {
-  local IFS=':'
-  local _c=(${1})
-  local _ret=0
-  for __c in ${_c[@]}; do
-    if [[ ! ${__c} =~ ^[0-9a-fA-F]{0,4}$ ]]; then
-      _ret=1
-    fi
-  done
-  return ${_ret}
-}
-
 _insert_time_exec() {
   local _ping_file="${1}"
   set -- echo "===== $(_date)"
@@ -123,10 +96,10 @@ _append_task() {
   local _c_date=$(_date '+D%Y-%m-%d_T%H-%M-%S_%z')
   local _opts=''
   local _ip="$1"
-  if _check_ipv4 ${_ip}; then
+  if _is_ipv4 ${_ip}; then
     _work_dir="ping_v4_${_ip//./-}_${_c_date}"
     _opts="-4"
-  elif _check_ipv6 ${_ip}; then
+  elif _is_ipv6 ${_ip}; then
     _work_dir="ping_v6_${_ip//:/-}_${_c_date}"
     _opts="-6"
   else
@@ -195,7 +168,7 @@ _stop_task() {
     return
   fi
   kill -9 ${_insert_subprocesses}
-  kill -9 ${_ping_subprocesses}
+  kill -s INT ${_ping_subprocesses}
   _insert_time_exec "${_work_dir}/ping.log"
   eval "unset _id_pid_map[${1}]"
   set -- S ${_ip} ${1} ${_work_dir}
