@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+#
+# @author cwittlut <i@bitbili.net>
+#
+
+_sp="$(dirname $(realpath $0))"
+
+_cmd=$1
+shift
+
+_help() {
+  echo "Usage: ${0##*/} <cmd> [<option>...]
+
+      a, analyze  <ID>                  analyze the collect data
+      c, collect  <IP>...               start collect data job(s) by IP
+                                        OR append new job(s) to the current process
+      l, list                           list all items
+                  [<ID>]                list details of specified ID
+                  [r|f] [<IP>]             r: filter by running state
+                                           f: filter by finished state
+                                        <IP>: filter by IP address
+      s, stop     <ID>...               stop the job(s) of specified item by ID from current process
+     rm, remove   <ID>...|<PATH>...     remove all data of specified item by ID or Work Dir PATH
+    clr, clear    <ID>...|<PATH>...     clear the cache of specified item by ID or Work Dir PATH
+"
+}
+
+declare -a _args
+for _arg; do
+  case ${_arg} in
+    -h|--help|h|help)
+      _help
+      exit
+      ;;
+    *)
+      _args+=("${_arg}")
+      ;;
+  esac
+done
+set -- "${_args[@]}"
+
+case ${_cmd} in
+  a|analyze)
+    ${_sp}/analyze.sh "${@}"
+    ;;
+  c|collect)
+    ${_sp}/collect-data.sh "${@}"
+    ;;
+  l|list)
+    ${_sp}/list.sh "${@}"
+    ;;
+  s|stop)
+    ${_sp}/collect-data.sh -s "${@}"
+    ;;
+  rm|remove)
+    ${_sp}/remove.sh "${@}"
+    ;;
+  clr|clear)
+    ${_sp}/clear-cache.sh "${@}"
+    ;;
+  *)
+    _help
+    ;;
+esac

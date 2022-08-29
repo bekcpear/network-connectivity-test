@@ -8,15 +8,6 @@ set -e
 _my_path=$(dirname $(realpath $0))
 . "${_my_path}/env"
 
-# help
-if [[ $1 =~ ^- && $1 != '-s' ]]; then
-  echo "
-Usage: ${0##*/} <IP>...       start collect data job(s) or append new job(s) to the current process
-       ${0##*/} -s <ID>...    stop job(s) of the specified ID(s)
-"
-  exit
-fi
-
 #
 # $1: A|S
 _show_info() {
@@ -205,6 +196,9 @@ _listen() {
       socket_test)
         echo "ok" >${_NC_FIFO}
         ;;
+      *)
+        echo "err" >${_NC_FIFO}
+        ;;
     esac
   done
 }
@@ -222,6 +216,11 @@ if [[ -e ${_NC_FIFO} ]]; then
   rm -f ${_NC_FIFO}
 fi
 ' ERR EXIT
+
+if [[ ${1} == '-s' ]]; then
+  echo "no collecting process for home dir: '${_home_dir}'!" >&2
+  exit 1
+fi
 
 # main server process
 mkfifo ${_NC_FIFO}

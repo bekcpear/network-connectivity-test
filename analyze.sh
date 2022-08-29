@@ -8,14 +8,6 @@ set -e
 _my_path=$(dirname $(realpath $0))
 . "${_my_path}/env"
 
-# help
-if [[ $1 =~ ^- ]]; then
-  echo "
-Usage: $0 <ID> | <PATH>
-"
-  exit
-fi
-
 
 if _is_id ${1}; then
   _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${1%.id}'.id' -type f -printf '%h\n')"
