@@ -6,7 +6,7 @@
 set -e
 
 _my_path=$(dirname $(realpath $0))
-. "${_my_path}/env"
+. "${_my_path}/../env"
 
 declare -a _rm_work_dirs
 for _a; do

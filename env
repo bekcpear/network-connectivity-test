@@ -4,11 +4,17 @@
 #
 
 _home_dir=${NCT_DIR:-"${HOME}/.local/share/network-connectivity-test"}
-_home_dir=$(realpath ${_home_dir})
 _debug_log="/dev/null"
 
+
+# dirs, will be created automatically
 _sock="/tmp/network-connectivity-test.sock"
 _NC_FIFO="/tmp/network-connectivity-test.fifo"
 
+
+######
+######
+######
+_home_dir=$(realpath ${_home_dir})
 . "${_my_path}/pre.sh"
 

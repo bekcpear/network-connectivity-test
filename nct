@@ -3,7 +3,7 @@
 # @author cwittlut <i@bitbili.net>
 #
 
-_sp="$(dirname $(realpath $0))"
+_sp="$(dirname $(realpath $0))/scripts"
 
 _cmd=$1
 shift
