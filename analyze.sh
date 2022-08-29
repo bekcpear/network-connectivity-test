@@ -137,7 +137,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
     if [[ -n ${_seq0_fixed} ]]; then
       _seq0=${_seq0_fixed}
     else
-      _seq0=$(head -1 ${_ii} | cut -d' ' -f5)
+      _seq0=$(head -1 ${_ii} | grep 'icmp_seq=' | cut -d' ' -f5)
       _seq0=${_seq0#icmp_seq=}
       # check discontinuous seq
       if [[ ${_seq0} -gt ${_seq1_last} && ${_seq0} != $(( ${_seq1_last} + 1 )) ]]; then
@@ -158,6 +158,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
         fi
       fi
     fi
+    _seq0=${_seq0:-0}
 
     if [[ -n ${_seq1_fixed} ]]; then
       _seq1=${_seq1_fixed}
@@ -169,8 +170,9 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
         fi
       done <<<"$(tail ${_ii} | tac)"
     fi
+    _seq1=${_seq1:-0}
 
-    if [[ ${_seq1} -gt ${_seq0} ]]; then
+    if [[ ${_seq1} -ge ${_seq0} ]]; then
       _seq=$(( ${_seq1} - ${_seq0} + 1 ))
     else
       _seq=$(( 65535 - ${_seq0} + ${_seq1} + 2 ))
@@ -214,7 +216,11 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
         t+=$10
       }
       END {
-        printf "scale=0; "t" / "n
+        if (n == 0) {
+          printf "0"
+        } else {
+          printf "scale=0; "t" / "n
+        }
       }
     ' ${_ii}) | bc ) >>${_report}
   echo "_i_p=${_ii}" >__pos
