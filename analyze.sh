@@ -112,7 +112,7 @@ else
   declare -i _ii_p=${_i_p:-1}
 fi
 declare -a _seq0_fixed _seq1_fixed
-for (( _ii = ${_ii_p} ; _ii < _i; )); do
+for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
   echo -ne "\033[G\033[Jparsing ${_ii} ..." >&2
   _d=$(_get_date ${_ii})
   if [[ -z ${_d} ]]; then
@@ -124,9 +124,9 @@ for (( _ii = ${_ii_p} ; _ii < _i; )); do
   while read _line; do
     eval "declare ${_line}"
   done <<<"$(grep '^_seq' -- $((${_ii} - 1)))"
-  _seq0_last=${_seq0_fixed}
-  _seq1_last=${_seq1_fixed}
-  _seq_last=${_seq_fixed}
+  _seq0_last=${_seq0_fixed:-0}
+  _seq1_last=${_seq1_fixed:-0}
+  _seq_last=${_seq_fixed:-0}
   while read _line; do
     eval "declare ${_line}"
   done <<<"$(grep '^_seq' -- ${_ii})"
@@ -219,9 +219,9 @@ for (( _ii = ${_ii_p} ; _ii < _i; )); do
     ' ${_ii}) | bc ) >>${_report}
   echo "_i_p=${_ii}" >__pos
 
-  _ii=$((${_ii} + 1))
+  _idx=$((${_ii} + 1))
   _placeholder='    '
-  echo -n "${_ii}${_placeholder:${#_ii}}   "${_d}'   -   ' >>${_report}
+  echo -n "${_idx}${_placeholder:${#_idx}}   "${_d}'   -   ' >>${_report}
 done
 echo -ne "\033[G\033[J" >&2
 
