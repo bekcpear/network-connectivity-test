@@ -17,6 +17,58 @@ Usage: ${0##*/} <IP>...       start collect data job(s) or append new job(s) to 
   exit
 fi
 
+#
+# $1: A|S
+_show_info() {
+  local _action=${1}
+  local _ip=${2}
+  local _id=${3}
+  local _work_dir=${4}
+  case ${_action} in
+    A)
+      if [[ ${_ip} != "invalid" ]]; then
+        echo -en "\033[32m
+New item appended:\033[0m"
+      else
+        echo "Invalid IP address '${_id}'!" >&2
+      fi
+      ;;
+    S)
+      if [[ ${_ip} != "invalid" ]]; then
+        echo -en "\033[33m
+Item stopped:\033[0m"
+      else
+        echo "Invalid item ID '${_id}'!" >&2
+      fi
+      ;;
+  esac
+  if [[ ${_ip} != "invalid" ]]; then
+    echo "
+        IP: ${_ip}
+        ID: ${_id}
+  Work Dir: ${_work_dir}
+"
+  fi
+}
+
+_send_item() {
+  echo "$*" | nc -W 1 -U ${_sock}
+}
+
+# main client process
+if [[ -e ${_sock} ]]; then
+  _action='append'
+  if [[ ${1} == '-s' ]]; then
+    _action='stop'
+    shift
+  fi
+  for _item; do
+    _show_info $(_send_item ${_item} ${_action})
+  done
+  exit
+fi
+
+
 _check_ipv4() {
   local IFS='.'
   local _c=(${1})
@@ -145,9 +197,20 @@ _stop_task() {
   kill -9 ${_insert_subprocesses}
   kill -9 ${_ping_subprocesses}
   _insert_time_exec "${_work_dir}/ping.log"
+  eval "unset _id_pid_map[${1}]"
   set -- S ${_ip} ${1} ${_work_dir}
   _show_info "${@}"
   echo "${@}" >${_NC_FIFO}
+}
+
+#
+# $1: id
+_check_running() {
+  if [[ -n ${_id_pid_map[${1}]} ]]; then
+    echo "RUNNING" >${_NC_FIFO}
+  else
+    echo "FINISHED" >${_NC_FIFO}
+  fi
 }
 
 _listen() {
@@ -163,49 +226,14 @@ _listen() {
       stop)
         _stop_task "${_item}"
         ;;
+      check_running)
+        _check_running "${_item}"
+        ;;
       socket_test)
         echo "ok" >${_NC_FIFO}
         ;;
     esac
   done
-}
-
-#
-# $1: A|S
-_show_info() {
-  local _action=${1}
-  local _ip=${2}
-  local _id=${3}
-  local _work_dir=${4}
-  case ${_action} in
-    A)
-      if [[ ${_ip} != "invalid" ]]; then
-        echo -en "\033[32m
-New item appended:\033[0m"
-      else
-        echo "Invalid IP address '${_id}'!" >&2
-      fi
-      ;;
-    S)
-      if [[ ${_ip} != "invalid" ]]; then
-        echo -en "\033[33m
-Item stopped:\033[0m"
-      else
-        echo "Invalid item ID '${_id}'!" >&2
-      fi
-      ;;
-  esac
-  if [[ ${_ip} != "invalid" ]]; then
-    echo "
-        IP: ${_ip}
-        ID: ${_id}
-  Work Dir: ${_work_dir}
-"
-  fi
-}
-
-_send_item() {
-  echo "$*" | nc -W 1 -U ${_sock}
 }
 
 trap '
@@ -222,30 +250,19 @@ if [[ -e ${_NC_FIFO} ]]; then
 fi
 ' ERR EXIT
 
-# main process
-if [[ -e ${_sock} ]]; then
-  _action='append'
-  if [[ ${1} == '-s' ]]; then
-    _action='stop'
-    shift
+# main server process
+mkfifo ${_NC_FIFO}
+exec {_FD_ITEM}> >(_listen)
+_listen_pid=$!
+( < <(tail -f ${_NC_FIFO}) nc -k -l -U ${_sock} >&${_FD_ITEM} ) &
+_socket_server=$!
+while :; do
+  if [[ $(echo '_ socket_test' | nc -W 1 -U ${_sock} 2>${_debug_log}) == 'ok' ]]; then
+    break
   fi
-  for _item; do
-    _show_info $(_send_item ${_item} ${_action})
-  done
-else
-  mkfifo ${_NC_FIFO}
-  exec {_FD_ITEM}> >(_listen)
-  _listen_pid=$!
-  ( < <(tail -f ${_NC_FIFO}) nc -k -l -U ${_sock} >&${_FD_ITEM} ) &
-  _socket_server=$!
-  while :; do
-    if [[ $(echo '_ socket_test' | nc -W 1 -U ${_sock} 2>${_debug_log}) == 'ok' ]]; then
-      break
-    fi
-  done
-  for _ip; do
-    _send_item ${_ip} append >/dev/null
-  done
-fi
+done
+for _ip; do
+  _send_item ${_ip} append >/dev/null
+done
 
 wait

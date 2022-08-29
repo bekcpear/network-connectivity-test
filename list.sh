@@ -70,7 +70,7 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   fi
   _placeholder='                      '
 
-  if ls ${_home_dir}/${_name}/RUNNING &>/dev/null; then
+  if [[ $( echo ${_id} 'check_running' | nc -W 1 -U ${_sock} ) == "RUNNING" ]]; then
     _state='\033[32m\033[1mrunning\033[0m '
   else
     _state='finished'
