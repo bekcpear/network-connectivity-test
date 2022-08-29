@@ -11,10 +11,28 @@ _my_path=$(dirname $(realpath $0))
 # help
 if [[ $1 =~ ^- ]]; then
   echo "
-Usage: ${0##*/} [<ID>|<IP>]
+Usage: ${0##*/} [<ID>|<IP>] [r|f]
+          r: means filter by running state
+          f: means filter by finished state
 "
   exit
 fi
+
+declare -a _args
+for _arg; do
+  case ${_arg} in
+    r)
+      _filter_running=1
+      ;;
+    f)
+      _filter_finished=1
+      ;;
+    *)
+      _args+=("${_arg}")
+      ;;
+  esac
+done
+set -- "${_args[@]}"
 
 #
 # $1: id
@@ -113,6 +131,22 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   _ping_file="${_home_dir}/${_name}/ping.log"
   _ping_file_tail="$(tail ${_ping_file})"
 
+  if _is_running ${_id}; then
+    if [[ -n ${_filter_finished} ]]; then
+      continue
+    fi
+    _state='\033[32m\033[1mrunning\033[0m '
+  else
+    if [[ -n ${_filter_running} ]]; then
+      continue
+    fi
+    _state='finished'
+    _edt=$(grep '^=====\s' <<<"${_ping_file_tail}" | tail -1)
+    _ed=$(date -d "${_edt#===== }" '+%Y-%m-%d')
+    _et=$(date -d "${_edt#===== }" '+%H:%M:%S')
+    _etz=$(date -d "${_edt#===== }" '+%z')
+  fi
+
   # get the total seq num and format it
   _seq_sum=$(tac <<<"${_ping_file_tail}" | grep 'icmp_seq=' | head -1)
   _seq_sum=${_seq_sum#*icmp_seq=}
@@ -148,15 +182,6 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   fi
   _placeholder='                      '
 
-  if _is_running ${_id}; then
-    _state='\033[32m\033[1mrunning\033[0m '
-  else
-    _state='finished'
-    _edt=$(grep '^=====\s' <<<"${_ping_file_tail}" | tail -1)
-    _ed=$(date -d "${_edt#===== }" '+%Y-%m-%d')
-    _et=$(date -d "${_edt#===== }" '+%H:%M:%S')
-    _etz=$(date -d "${_edt#===== }" '+%z')
-  fi
 
   echo -e " ${_id}   ${_state}   ${_type}   ${_ver}    S:${_d}  ${_t}  ${_tz}    ${_ip}"
   if [[ ${_state} == "finished" ]]; then
