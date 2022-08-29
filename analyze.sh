@@ -105,14 +105,14 @@ declare -i _ii_p=1
 if [[ ! -f ${_report} || -z ${_i_p} ]]; then
   echo "IP: ${_ip}" >${_report}
   echo -e "idx.   start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
-  echo -n '0      '$(_get_date 0)'   -   ' >>${_report}
+  echo -n '1      '$(_get_date 0)'   -   ' >>${_report}
 else
   sed -Ei '$s@-\s\s\s.*@-   -----@' ${_report}
   sed -zEi '$s@-----\n@@' ${_report}
   declare -i _ii_p=${_i_p:-1}
 fi
 declare -a _seq0_fixed _seq1_fixed
-for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
+for (( _ii = ${_ii_p} ; _ii < _i; )); do
   echo -ne "\033[G\033[Jparsing ${_ii} ..." >&2
   _d=$(_get_date ${_ii})
   if [[ -z ${_d} ]]; then
@@ -219,6 +219,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii )); do
     ' ${_ii}) | bc ) >>${_report}
   echo "_i_p=${_ii}" >__pos
 
+  _ii=$((${_ii} + 1))
   _placeholder='    '
   echo -n "${_ii}${_placeholder:${#_ii}}   "${_d}'   -   ' >>${_report}
 done
