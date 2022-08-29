@@ -71,5 +71,6 @@ $ ./nct rm <ID>
 
 #### TODO
 
+* use the top datetime in the ping.log file as the start time instead of the dirname
 * automatically run mtr test when high loss rate detected
 * automatically update analysis report
