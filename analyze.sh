@@ -206,7 +206,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
 
   # avg. time
   echo -n "   " >>${_report}
-  printf "%d ms\n" $(echo $(awk -F'[= ]' '
+  printf "%5.3f ms\n" $(echo $(awk -F'[= ]' '
       BEGIN {
         n=0
         t=0
@@ -219,7 +219,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
         if (n == 0) {
           printf "0"
         } else {
-          printf "scale=0; "t" / "n
+          printf "scale=3; "t" / "n
         }
       }
     ' ${_ii}) | bc ) >>${_report}
