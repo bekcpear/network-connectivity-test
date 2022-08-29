@@ -175,7 +175,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
     else
       _seq=$(( 65535 - ${_seq0} + ${_seq1} + 2 ))
     fi
-    if [[ ${_seq} -gt 600 ]]; then
+    if [[ ${_seq} -gt 600 && -n ${_seq1_fixed} ]]; then
       _seq1=$(( ${_seq1} - ${_seq} + 600 ))
       _seq=600
     fi
