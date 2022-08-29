@@ -44,9 +44,10 @@ _check_ipv6() {
 }
 
 _insert_time_exec() {
+  local _ping_file="${1}"
   set -- echo "===== $(_date)"
-  echo "${@}" ">>""${1}" >${_debug_log}
-  "${@}" >>"${1}"
+  echo "${@}" ">>""${_ping_file}" >${_debug_log}
+  "${@}" >>"${_ping_file}"
 }
 #
 # $1: file
@@ -170,7 +171,7 @@ _listen() {
 }
 
 #
-# $1: A|R
+# $1: A|S
 _show_info() {
   local _action=${1}
   local _ip=${2}
