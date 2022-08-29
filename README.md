@@ -53,14 +53,14 @@ $ ./nct l
 # list all running jobs
 $ ./nct l r
 
+# list details of a specified job
+$ ./nct l <ID>
+
 # analyze a specified job
 $ ./nct a <ID>
 
 # stop a running job
 $ ./nct s <ID>
-
-# remove a finished job
-$ ./nct rm <ID>
 ```
 
 #### screenshots
