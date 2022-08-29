@@ -45,7 +45,7 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   else
     set -- cat ${_ping_file}
   fi
-  _test_seqs=($("${@}" | grep -E 'icmp_seq=655[0-9][0-9]' 2>/dev/null | sort))
+  _test_seqs=($("${@}" | grep -E 'icmp_seq=655[0-9][0-9]' 2>/dev/null | cut -d' ' -f5 | sort))
   _seq_loop=0
   declare -i _seq_loop_last=0
   _test_seq_last=''
