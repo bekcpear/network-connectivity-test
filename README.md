@@ -68,3 +68,8 @@ $ ./nct rm <ID>
 ![collect-stop-analyze](./.assets/c-s-a.png)
 
 ![list](./.assets/l.png)
+
+#### TODO
+
+* automatically run mtr test when high loss rate detected
+* automatically update analysis report
