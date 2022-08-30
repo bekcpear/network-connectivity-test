@@ -215,7 +215,7 @@ if [[ -n ${_socket_server} ]]; then
       echo "socket server killed."; \
     } || \
     echo "kill socket server failed."
-  rm -f ${_sock} &>/dev/null || true
+  rm -f ${_sock}
 fi
 if [[ -e ${_NC_FIFO} ]]; then
   rm -f ${_NC_FIFO}
@@ -228,7 +228,7 @@ if [[ ${1} == '-s' ]]; then
 fi
 
 # main server process
-rm -f ${_NC_FIFO} &>/dev/null || true
+rm -f ${_NC_FIFO}
 mkfifo ${_NC_FIFO}
 exec {_FD_ITEM}> >(_listen)
 _listen_pid=$!
