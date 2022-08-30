@@ -8,6 +8,10 @@ set -e
 _my_path=$(dirname $(realpath $0))
 . "${_my_path}/../env"
 
+if ! command -v bc &>/dev/null; then
+  echo "'bc' command not found!" >&2
+  exit 1
+fi
 
 if _is_id ${1}; then
   _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${1%.id}'.id' -type f -printf '%h\n')"

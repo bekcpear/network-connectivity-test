@@ -8,6 +8,11 @@ set -e
 _my_path=$(dirname $(realpath $0))
 . "${_my_path}/../env"
 
+if ! command -v nc &>/dev/null; then
+  echo "'nc' command (openbsd-netcat) not found!" >&2
+  exit 1
+fi
+
 #
 # $1: A|S
 _show_info() {
@@ -208,9 +213,9 @@ if [[ -n ${_socket_server} ]]; then
   kill -9 ${_socket_server} && \
     { \
       echo "socket server killed."; \
-      rm ${_sock}; \
     } || \
     echo "kill socket server failed."
+  rm -f ${_sock} &>/dev/null || true
 fi
 if [[ -e ${_NC_FIFO} ]]; then
   rm -f ${_NC_FIFO}
@@ -223,15 +228,22 @@ if [[ ${1} == '-s' ]]; then
 fi
 
 # main server process
+rm -f ${_NC_FIFO} &>/dev/null || true
 mkfifo ${_NC_FIFO}
 exec {_FD_ITEM}> >(_listen)
 _listen_pid=$!
 ( < <(tail -f ${_NC_FIFO}) nc -k -l -U ${_sock} >&${_FD_ITEM} ) &
 _socket_server=$!
+declare -i _tries=0
 while :; do
   if [[ $(echo '_ socket_test' | nc -W 1 -U ${_sock} 2>${_debug_log}) == 'ok' ]]; then
     break
   fi
+  if [[ ${_tries} -gt 50 ]]; then
+    echo "cannot connect to the socket server!" >&2
+    exit 1
+  fi
+  _tries+=1
 done
 for _ip; do
   _send_item ${_ip} append >/dev/null
