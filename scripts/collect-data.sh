@@ -100,7 +100,7 @@ _append_task() {
   IFS='|[' read -r _ip _tag_l <<<"${_ip}"
   if [[ -n ${_tag_l} ]]; then
     IFS=';'
-    _tags=(${_tag_l})
+    _tags=(${_tag_l%]})
   fi
   IFS=${_oifs}
 

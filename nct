@@ -12,7 +12,7 @@ _help() {
   echo "Usage: ${0##*/} <cmd> [<option>...]
 
       a, analyze  <ID>                  analyze the collect data
-      c, collect  <IP>...               start collect data job(s) by IP
+      c, collect  <IP-ITEM>...          start collect data job(s) by IP
                                         OR append new job(s) to the current process
       l, list                           list all items
                   [<ID>]                list details of specified ID
@@ -25,6 +25,12 @@ _help() {
                        clear            remove all Tags from the specified item
      rm, remove   <ID>...|<PATH>...     remove all data of specified item by ID or Work Dir PATH
     clr, clear    <ID>...|<PATH>...     clear the cache of specified item by ID or Work Dir PATH
+
+  IP-ITEM:
+      <IP>                              only the IPv4 or IPv6 address
+      <IP> '|' <TAG> [;<TAG>...]        IP address with Tag(s) which are seperated by ';'
+      <IP> '[' <TAG> [;<TAG>...] ']'    IP address with Tag(s) which are seperated by ';'
+
 "
 }
 
