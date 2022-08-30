@@ -49,7 +49,7 @@ Item stopped:\033[0m"
 }
 
 _send_item() {
-  echo "$*" | nc -W 1 -U ${_sock}
+  echo "${@}" | nc -W 1 -U ${_sock}
 }
 
 # main client process
@@ -60,7 +60,7 @@ if [[ -e ${_sock} ]]; then
     shift
   fi
   for _item; do
-    _show_info $(_send_item ${_item} ${_action})
+    _show_info $(_send_item ${_action} "${_item}")
   done
   exit
 fi
@@ -204,7 +204,7 @@ _listen() {
   local _ip
   local -A _id_pid_map
   while :; do
-    read -r _item _action
+    read -r _action _item
     case ${_action} in
       append)
         _append_task "${_item}"
@@ -253,7 +253,7 @@ _listen_pid=$!
 _socket_server=$!
 declare -i _tries=0
 while :; do
-  if [[ $(echo '_ socket_test' | nc -W 1 -U ${_sock} 2>${_debug_log}) == 'ok' ]]; then
+  if [[ $(echo 'socket_test' | nc -W 1 -U ${_sock} 2>${_debug_log}) == 'ok' ]]; then
     break
   fi
   if [[ ${_tries} -gt 50 ]]; then
@@ -263,7 +263,7 @@ while :; do
   _tries+=1
 done
 for _ip; do
-  _send_item ${_ip} append >/dev/null
+  _send_item append "${_ip}" >/dev/null
 done
 
 wait

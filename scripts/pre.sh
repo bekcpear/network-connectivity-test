@@ -71,7 +71,7 @@ _is_running() {
     exit 1
   fi
   if [[ -S ${_sock} ]]; then
-    if [[ $( echo ${1} 'check_running' | nc -W 1 -U ${_sock} ) == "RUNNING" ]]; then
+    if [[ $( echo 'check_running' ${1} | nc -W 1 -U ${_sock} ) == "RUNNING" ]]; then
       return 0
     fi
   fi
