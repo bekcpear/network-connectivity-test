@@ -219,5 +219,7 @@ _tag() {
 
   if [[ ${_modified} == 1 ]]; then
     _write_tags _tags "${_id_file}"
+    return
   fi
+  return 9 # means do nothing
 }

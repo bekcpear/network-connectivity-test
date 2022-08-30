@@ -16,15 +16,16 @@ shift 2 || \
     exit 1
   }
 
+unset _ret
 case ${_action} in
-  add)
-    _tag add ${_id} "${@}"
+  a|add)
+    _tag add ${_id} "${@}" || _ret=$?
     ;;
-  del)
-    _tag del ${_id} "${@}"
+  d|del)
+    _tag del ${_id} "${@}" || _ret=$?
     ;;
-  clear)
-    _tag clear ${_id}
+  clr|clear)
+    _tag clear ${_id} || _ret=$?
     ;;
   *)
     echo "Unrecognized action '${_action}'!" >&2
@@ -32,5 +33,12 @@ case ${_action} in
     ;;
 esac
 
-echo ${_sp}
+if [[ -z ${_ret} ]]; then
+  echo "${_action} for '${_id}' succeed."
+elif [[ ${_ret} == 9 ]]; then
+  echo "nothing happend!"
+else
+  return ${_ret}
+fi
+
 ${_sp}/list.sh ${_id}
