@@ -55,7 +55,7 @@ $ ./nct c 8.8.8.8 104.21.12.119
 $ ./nct c 172.65.251.78
 # will exit when the request is complete
 
-# append 8.8.4.4 with 3 tags to the job list
+# append 43.143.12.110 with 3 tags to the job list
 $ ./nct c "43.143.12.110|tencent;vps;shanghai"
 
 # list all the jobs
