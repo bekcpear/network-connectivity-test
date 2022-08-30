@@ -6,6 +6,7 @@
 # prepare sock and fifo vars
 mkdir -p ${_sock}
 mkdir -p ${_NC_FIFO}
+mkdir -p ${_home_dir}
 _home_sha1=$(sha1sum <<<"${_home_dir}" | cut -d' ' -f1)
 _sock="${_sock}/${_home_sha1}"
 _NC_FIFO="${_NC_FIFO}/${_home_sha1}"

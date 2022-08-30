@@ -15,6 +15,6 @@ _NC_FIFO="/tmp/network-connectivity-test.fifo"
 ######
 ######
 ######
-_home_dir=$(realpath ${_home_dir})
+_home_dir=$(realpath -m ${_home_dir})
 . "${_my_path}/pre.sh"
 
