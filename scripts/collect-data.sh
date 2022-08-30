@@ -42,6 +42,7 @@ Item stopped:\033[0m"
     echo "
         IP: ${_ip}
         ID: ${_id}
+      Tags: $(_tag get ${_id})
   Work Dir: ${_work_dir}
 "
   fi
@@ -92,6 +93,17 @@ _append_task() {
   local _c_date=$(_date '+D%Y-%m-%d_T%H-%M-%S_%z')
   local _opts=''
   local _ip="$1"
+  local -a _tags
+
+  # seperate IP and Tags
+  local _oifs=${IFS}
+  IFS='|[' read -r _ip _tag_l <<<"${_ip}"
+  if [[ -n ${_tag_l} ]]; then
+    IFS=';'
+    _tags=(${_tag_l})
+  fi
+  IFS=${_oifs}
+
   if _is_ipv4 ${_ip}; then
     _work_dir="ping_v4_${_ip//./-}_${_c_date}"
     _opts="-4"
@@ -144,6 +156,11 @@ _append_task() {
   set -- touch "${_work_dir}/${_this_id}.id"
   echo ">>>" "${@}" >${_debug_log}
   "${@}"
+
+  # write Tags into ID file
+  if [[ ${#_tags[@]} -gt 0 ]]; then
+    _write_tags _tags "${_work_dir}/${_this_id}.id"
+  fi
 
   eval "_id_pid_map[${_this_id}]='${_insert_subprocesses} ${_ping_subprocesses} ${_ip} ${_work_dir}'"
 

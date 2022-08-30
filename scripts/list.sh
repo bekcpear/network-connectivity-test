@@ -137,6 +137,7 @@ if _is_id ${1}; then
           ID: ${_id}
           IP: ${_ip}
         Type: ${_type} (${_ver})
+        Tags: $(_tag get ${_id})
       Status: ${_status}
     Last Seq: $(_live_seq_sum ${_ping_file})
  Time period: ${_d} ${_t} ${_tz}" - "${_ed:-<Now>} ${_et} ${_etz}
@@ -185,12 +186,14 @@ while IFS='_' read _type _ver _ip _d _t _tz; do
   _seq_sum_ph='         '
 
   echo -e " ${_id}   ${_state}   ${_type}   ${_ver}        S:${_d} ${_t} ${_tz}    ${_ip}"
+
+  _tags="$(_tag get ${_id})"
+  _statistics_short_ph='                  '
   if [[ ${_state} == "finished" ]]; then
     _statistics_short="$(_statistics ${_ping_file} short)"
-    _statistics_short_ph='                  '
-    echo "         ${_seq_sum}${_seq_sum_ph:${#_seq_sum}}${_statistics_short}${_statistics_short_ph:${#_statistics_short}} E:${_ed} ${_et} ${_etz}"
+    echo "         ${_seq_sum}${_seq_sum_ph:${#_seq_sum}}${_statistics_short}${_statistics_short_ph:${#_statistics_short}} E:${_ed} ${_et} ${_etz}    ${_tags:+[}${_tags}${_tags:+]}"
   else
-    echo "         ${_seq_sum}${_seq_sum_ph:${#_seq_sum}}"
+    echo "         ${_seq_sum}${_seq_sum_ph:${#_seq_sum}}${_statistics_short_ph}                                ${_tags:+[}${_tags}${_tags:+]}"
   fi
   echo "---------------------------------------------------------------------------------------"
 done <<<"$(find ${_home_dir} -mindepth 1 -maxdepth 1 -name "${_ip_pattern}" -printf '%f\n')"

@@ -20,6 +20,9 @@ _help() {
                                            f: filter by finished state
                                         <IP>: filter by IP address
       s, stop     <ID>...               stop the job(s) of specified item by ID from current process
+      t, tag      <ID> add <TAG>...     add Tag(s) to the specified item
+                       del <TAG>...     del Tag(s) from the specified item
+                       clear            remove all Tags from the specified item
      rm, remove   <ID>...|<PATH>...     remove all data of specified item by ID or Work Dir PATH
     clr, clear    <ID>...|<PATH>...     clear the cache of specified item by ID or Work Dir PATH
 "
@@ -51,6 +54,10 @@ case ${_cmd} in
     ;;
   s|stop)
     ${_sp}/collect-data.sh -s "${@}"
+    ;;
+  t|tag)
+    export _sp
+    ${_sp}/tag.sh "${@}"
     ;;
   rm|remove)
     ${_sp}/remove.sh "${@}"

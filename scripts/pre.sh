@@ -95,6 +95,16 @@ _is_work_dir() {
   return 1
 }
 
+_id_file_from_id() {
+  local _id_file="$(find ${_home_dir} -mindepth 2 -maxdepth 2 -name ${1%.id}'.id' -type f)"
+  if [[ -n ${_id_file} ]]; then
+    echo "${_id_file}"
+  else
+    return 1
+  fi
+
+}
+
 _work_dir_from_id() {
   local _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${1%.id}'.id' -type f -printf '%h\n')"
   if _is_work_dir "${_work_dir}"; then
@@ -120,9 +130,9 @@ _id_and_work_dir() {
   local _this_id _work_dir
   local -i _ret=0
   if _is_id ${1}; then
-    _work_dir=$(_work_dir_from_id ${_a}) || _ret=$?
+    _work_dir=$(_work_dir_from_id ${1}) || _ret=$?
     if [[ ${_ret} != 0 ]]; then
-      echo "cannot get work dir from ID '${_a}'" >&2
+      echo "cannot get work dir from ID '${1}'" >&2
       return 1
     fi
     _this_id=${1}
@@ -141,4 +151,73 @@ _id_and_work_dir() {
     fi
   fi
   declare -p _this_id _work_dir
+}
+
+#
+# $1: the array name of tags
+# $2: file path
+_write_tags() {
+  local _file="${2}"
+  local _new_tags=''
+  eval "set -- \"\${${1}[@]}\""
+  for _t; do
+    _new_tags+="${_t}"$'\n'
+  done
+  echo "${_new_tags}" >${_file}
+}
+
+#
+# $1: action
+# $2: id
+# $3: [tag...]
+_tag() {
+  local _action=${1}
+  local _id=${2}
+  local _id_file
+
+  _id_file="$(_id_file_from_id ${_id})" || \
+    return 1
+
+  if [[ ${_action} == "clear" ]]; then
+    echo >${_id_file}
+    return
+  fi
+
+  IFS=$'\n'
+  local _tags=($(cat ${_id_file} 2>/dev/null))
+
+  if [[ ${_action} == "get" ]]; then
+    for _t in "${_tags[@]}"; do
+      _txt+="${_t}; "
+    done
+    echo "${_txt%; }"
+    return
+  fi
+
+  shift 2
+  for _t; do
+    case ${_action} in
+      add)
+        for _t_e in ${_tags[@]}; do
+          if [[ "${_t}" == "${_t_e}" ]]; then
+            continue 2
+          fi
+        done
+        _tags+=("${_t}")
+        _modified=1
+        ;;
+      del)
+        for (( _i = 0; _i<${#_tags[@]}; ++_i )); do
+          if [[ "${_t}" == "${_tags[${_i}]}" ]]; then
+            eval "unset _tags[${_i}]"
+            _modified=1
+          fi
+        done
+        ;;
+    esac
+  done
+
+  if [[ ${_modified} == 1 ]]; then
+    _write_tags _tags "${_id_file}"
+  fi
 }

@@ -13,11 +13,7 @@ if ! command -v bc &>/dev/null; then
   exit 1
 fi
 
-if _is_id ${1}; then
-  _work_dir="$(find ${_home_dir} -maxdepth 2 -name ${1%.id}'.id' -type f -printf '%h\n')"
-else
-  _work_dir="${_home_dir}/${1##*/}"
-fi
+eval "$(_id_and_work_dir ${1})"
 
 _ip=''
 while IFS='_' read _ _type __ip _; do
@@ -99,7 +95,7 @@ pushd ${_tmp_dir} >/dev/null
 eval "$(cat __pos 2>/dev/null)"
 declare -i _ii_p=1
 if [[ ! -f ${_report} || -z ${_i_p} ]]; then
-  echo "IP: ${_ip}" >${_report}
+  echo "IP: ${_ip} [$(_tag get ${_this_id})]" >${_report}
   echo -e "idx.   start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
   echo -n '1      '$(_get_date 0)'   -   ' >>${_report}
 else
