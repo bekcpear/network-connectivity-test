@@ -17,6 +17,14 @@ _date() {
   date "${@}"
 }
 
+_is_path() {
+  if [[ -e "${1}" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 _is_id() {
   if [[ ${1} =~ ^[_0-9a-zA-Z]{5}(\.id)?$ ]]; then
     return 0
@@ -125,18 +133,47 @@ _id_from_work_dir() {
   fi
 }
 
+_id_and_work_dir_from_tag() {
+  local _this_id _work_dir
+  local -a _id_files=( $(find ${_home_dir} -mindepth 2 -maxdepth 2 -name '*.id' -type f) )
+  local -a _hited_id_files
+  local f
+  for f in "${_id_files[@]}"; do
+    if eval "grep -E '^${1}$' '${f}'" &>/dev/null; then
+      _hited_id_files+=( "${f}" )
+    fi
+  done
+  if [[ ${#_hited_id_files[@]} -gt 1 ]]; then
+    echo "multiple items for tag '${1}', ID:" >&2
+    for f in "${_hited_id_files[@]}"; do
+      echo "  ${f##*/}" >&2
+    done
+    return 1
+  fi
+  _this_id="${f##*/}"
+  _work_dir=$(_work_dir_from_id ${_this_id})
+  if [[ $? != 0 ]]; then
+    echo "cannot get work dir from tag '${1}'" >&2
+    return 1
+  fi
+  declare -p _this_id _work_dir
+}
+
 #
 # $1: id or work dir
 _id_and_work_dir() {
   local _this_id _work_dir
   local -i _ret=0
-  if _is_id ${1}; then
+  if ! _is_path ${1}; then
     _work_dir=$(_work_dir_from_id ${1}) || _ret=$?
     if [[ ${_ret} != 0 ]]; then
-      echo "cannot get work dir from ID '${1}'" >&2
-      return 1
+      eval "$(_id_and_work_dir_from_tag ${1} || true)"
+      if [[ -z ${_work_dir} ]]; then
+        echo "cannot get work dir from ID or Tag: '${1}'" >&2
+        return 1
+      fi
     fi
-    _this_id=${1}
+    : ${_this_id:=${1}}
   else
     _work_dir="${_home_dir}/${1##*/}"
   fi
