@@ -97,7 +97,7 @@ declare -i _ii_p=1
 if [[ ! -f ${_report} || -z ${_i_p} ]]; then
   echo "IP: ${_ip} [$(_tag get ${_this_id})]" >${_report}
   echo -e "idx.   start datetime                 -   end datetime                   recv/trans     loss%   avg.time" >>${_report}
-  echo -n '1      '$(_get_date 0)'   -   ' >>${_report}
+  echo -n '1      '"$(_get_date 0)"'   -   ' >>${_report}
 else
   sed -Ei '$s@-\s\s\s.*@-   -----@' ${_report}
   sed -zEi '$s@-----\n@@' ${_report}
@@ -219,7 +219,7 @@ for (( _ii = ${_ii_p} ; _ii < _i; ++_ii)); do
 
   _idx=$((${_ii} + 1))
   _placeholder='    '
-  echo -n "${_idx}${_placeholder:${#_idx}}   "${_d}'   -   ' >>${_report}
+  echo -n "${_idx}${_placeholder:${#_idx}}   ${_d}"'   -   ' >>${_report}
 done
 echo -ne "\033[G\033[J" >&2
 
