@@ -13,7 +13,6 @@ _NC_FIFO="${_NC_FIFO}/${_home_sha1}"
 
 _date() {
   export LC_TIME="C.UTF-8"
-  export TZ="Asia/Shanghai"
   date "${@}"
 }
 
