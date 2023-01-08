@@ -58,6 +58,9 @@ _is_ipv6() {
       _ret=1
     fi
   done
+  if [[ ${#_c[@]} -lt 3 ]]; then
+    _ret=1
+  fi
   return ${_ret}
 }
 
