@@ -172,10 +172,15 @@ _append_task() {
 #
 # $1: id
 _stop_task() {
+  local _this_id
+  if ! _is_id ${_this_id}; then
+    eval "$(_id_and_work_dir_from_tag ${1})"
+  fi
+  : ${_this_id:=${1}}
   local _insert_subprocesses _ping_subprocesses _ip _work_dir
-  read -r _insert_subprocesses _ping_subprocesses _ip _work_dir <<<"${_id_pid_map[${1}]}"
+  read -r _insert_subprocesses _ping_subprocesses _ip _work_dir <<<"${_id_pid_map[${_this_id}]}"
   if [[ -z ${_insert_subprocesses} && -z ${_ping_subprocesses} ]]; then
-    set -- S invalid ${1}
+    set -- S invalid ${_this_id}
     _show_info "${@}"
     echo "${@}" >${_NC_FIFO}
     return
@@ -183,8 +188,8 @@ _stop_task() {
   kill -9 ${_insert_subprocesses}
   kill -s INT ${_ping_subprocesses}
   _insert_time_exec "${_work_dir}/ping.log"
-  eval "unset _id_pid_map[${1}]"
-  set -- S ${_ip} ${1} ${_work_dir}
+  eval "unset _id_pid_map[${_this_id}]"
+  set -- S ${_ip} ${_this_id} ${_work_dir}
   _show_info "${@}"
   echo "${@}" >${_NC_FIFO}
 }

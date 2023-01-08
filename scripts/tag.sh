@@ -10,6 +10,12 @@ _my_path=$(dirname $(realpath $0))
 
 _id=${1}
 _action=${2}
+
+if ! _is_id ${_id}; then
+  eval "$(_id_and_work_dir_from_tag ${_id})"
+  _id=${_this_id}
+fi
+
 shift 2 || \
   {
     echo "missing arguments!" >&2
