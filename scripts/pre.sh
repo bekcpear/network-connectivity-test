@@ -150,7 +150,7 @@ _id_and_work_dir_from_tag() {
     done
     return 1
   fi
-  _this_id="${f##*/}"
+  _this_id="${_hited_id_files[0]##*/}"
   _work_dir=$(_work_dir_from_id ${_this_id})
   if [[ $? != 0 ]]; then
     echo "cannot get work dir from tag '${1}'" >&2
